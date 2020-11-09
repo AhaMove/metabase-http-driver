@@ -50,18 +50,6 @@
            {:name field}
            {:name (json/generate-string field)}))))
 
-(defn tile38-keys-query [rows respond]
-  (let [columns    [{:name "data"}]
-        result  (apply list (for [row rows] (list row)))]
-    (respond {:cols columns}
-             result)))
-
-(defn tile38-query [rows respond]
-  (let [columns    [{:name "data"}]
-        result  (apply list (for [row rows] (list row)))]
-    (respond {:cols columns}
-             result)))
-
 (defn api-query [query rows respond]
   (let [fields        (or (:fields (:result query)) (keys (first rows)))
         aggregations  (or (:aggregation (:result query)) [])
@@ -73,8 +61,6 @@
         result         (if raw
                          (extract-fields rows fields)
                          (aggregate rows aggregations breakouts))]
-    (println "columns" columns)
-    (println "result" result)
     (respond {:cols columns}
              result)))
 
@@ -91,38 +77,5 @@
                                        :as      :json
                                        :content-type "application/json"})
         rows-path     (or (:path (:result query)) "$")
-        rows          (json-path rows-path (walk/stringify-keys (:body result)))
-        from          (if (string? (:from query)) (:from query) "api")
-        is-tile38     (compare from "tile38")
-        is-tile38-keys  (if body (clojure.string/includes? body "KEYS") false)]
-    (println "rows" rows)
-    (cond
-      (= is-tile38 0) (tile38-query rows respond)
-      (= is-tile38-keys true) (tile38-keys-query rows respond)
-      :else (api-query query rows respond))))
-
-; (defn execute-http-request [native-query respond]
-;   (let [query         (if (string? (:query native-query))
-;                         (json/parse-string (:query native-query) keyword)
-;                         (:query native-query))
-;         result        (client/request {:method  (or (:method query) :get)
-;                                        :url     (:url query)
-;                                        :headers (:headers query)
-;                                        :body    (if (:body query) (json/generate-string (:body query)))
-;                                        :accept  :json
-;                                        :as      :json
-;                                        :content-type "application/json"})
-;         rows-path     (or (:path (:result query)) "$")
-;         rows          (json-path rows-path (walk/stringify-keys (:body result)))
-;         fields        (or (:fields (:result query)) (keys (first rows)))
-;         aggregations  (or (:aggregation (:result query)) [])
-;         breakouts     (or (:breakout (:result query)) [])
-;         raw           (and (= (count breakouts) 0) (= (count aggregations) 0))
-;         columns       (if raw
-;                         (field-names fields)
-;                         (field-names (concat breakouts aggregations)))
-;         result         (if raw
-;                          (extract-fields rows fields)
-;                          (aggregate rows aggregations breakouts))]
-;     (respond {:cols columns}
-;              result)))
+        rows          (json-path rows-path (walk/stringify-keys (:body result)))]
+    (api-query query rows respond)))
