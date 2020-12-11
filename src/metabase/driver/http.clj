@@ -2,9 +2,11 @@
   "HTTP API driver."
   (:require [cheshire.core :as json]
             [metabase.driver :as driver]
+            [metabase.models.metric :as metric :refer [Metric]]
             [metabase.driver.http.query-processor :as http.qp]
             [metabase.query-processor.store :as qp.store]
-            [metabase.util :as u]))
+            [metabase.util :as u]
+            [metabase.driver.http.parameters :as parameters]))
 
 (defn find-first
   [f coll]
@@ -78,8 +80,27 @@
                                     :aggregation  aggregation})})
      :mbql? true}))
 
-; (defmethod driver/execute-query :http [_ {native-query :native}]
-;   (http.qp/execute-http-request native-query))
+(driver/register! :http)
+
+(defmethod driver/supports? [:http :native-parameters] [_ _]                      true)
+
+(defmethod driver/supports? [:http :foreign-keys] [_ _]                           false)
+(defmethod driver/supports? [:http :nested-fields] [_ _]                          false)
+(defmethod driver/supports? [:http :set-timezone] [_ _]                           false)
+(defmethod driver/supports? [:http :basic-aggregations] [_ _]                     false)
+(defmethod driver/supports? [:http :expressions] [_ _]                            false)
+(defmethod driver/supports? [:http :expression-aggregations] [_ _]                false)
+(defmethod driver/supports? [:http :nested-queries] [_ _]                         false)
+(defmethod driver/supports? [:http :binning] [_ _]                                false)
+(defmethod driver/supports? [:http :case-sensitivity-string-filter-options] [_ _] false)
+(defmethod driver/supports? [:http :left-join] [_ _]                              false)
+(defmethod driver/supports? [:http :right-join] [_ _]                             false)
+(defmethod driver/supports? [:http :inner-join] [_ _]                             false)
+(defmethod driver/supports? [:http :full-join] [_ _]                              false)
+
+(defmethod driver/substitute-native-parameters :http
+  [driver inner-query]
+  (parameters/substitute-native-parameters driver inner-query))
 
 (defmethod driver/execute-reducible-query :http [_ {native-query :native} _ respond]
   (http.qp/execute-http-request native-query respond))
