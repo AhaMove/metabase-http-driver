@@ -47,7 +47,7 @@
 
       ;; convert temporal types to ISODate("2019-12-09T...") (etc.)
     (instance? Temporal x)
-    (format "\"%s\"" (u.date/format x))
+    (format "%s" (u.date/format x))
 
       ;; there's a special record type for sequences of numbers; pull the sequence it wraps out and recur
     (instance? CommaSeparatedNumbers x)
@@ -55,7 +55,7 @@
 
       ;; for everything else, splice it in as its string representation
     :else
-    (pr-str x)))
+    x))
 
 (defn- field->name [field]
   (:name field))
@@ -164,4 +164,5 @@
 (defn substitute-native-parameters
   [_ inner-query]
   (let [param->value (values/query->params-map inner-query)]
+    (println "parse-inner-query" inner-query)
     (update inner-query :query (partial walk/postwalk (partial parse-and-substitute param->value)))))

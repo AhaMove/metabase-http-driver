@@ -65,6 +65,7 @@
              result)))
 
 (defn execute-http-request [native-query respond]
+  (println "native-query" native-query)
   (let [query         (if (string? (:query native-query))
                         (json/parse-string (:query native-query) keyword)
                         (:query native-query))
