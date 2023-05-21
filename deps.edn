@@ -1,0 +1,14 @@
+{:paths
+  ["src" "resources"]
+
+  :deps
+  {
+    org.clojure/core.logic {:mvn/version "1.0.0"}
+    clj-http/clj-http {
+                      :mvn/version "3.12.3"              ; HTTP client
+                      :exclusions [commons-codec/commons-codec
+                                    commons-io/commons-io
+                                    slingshot/slingshot]}
+    com.jayway.jsonpath/json-path {:mvn/version "2.4.0"}
+  }
+}

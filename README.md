@@ -71,18 +71,36 @@ There is limited support for aggregations and breakouts, but this is very experi
 
 Clone the [Metabase repo](https://github.com/metabase/metabase) first if you haven't already done so.
 
-```bash
-cd /path/to/metabase_source
-lein install-for-building-drivers
-```
+### Metabase 0.46.0
 
-### Build the HTTP driver
+- The process for building a driver has changed slightly in Metabase 0.46.0. Your build command should now look
+  something like this:
 
-```bash
-# (In the HTTP driver directory)
-lein clean
-DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar
-```
+  ```sh
+  # Example for building the driver with bash or similar
+
+  # switch to the local checkout of the Metabase repo
+  cd /path/to/metabase/repo
+
+  # get absolute path to the driver project directory
+  DRIVER_PATH=`readlink -f ~/path/to/metabase-http-driver`
+
+  # Build driver. See explanation in sample HTTP driver README
+  clojure \
+    -Sdeps "{:aliases {:http {:extra-deps {com.metabase/http-driver {:local/root \"$DRIVER_PATH\"}}}}}"  \
+    -X:build:http \
+    build-drivers.build-driver/build-driver! \
+    "{:driver :http, :project-dir \"$DRIVER_PATH\", :target-dir \"$DRIVER_PATH/target\"}"
+  ```
+
+  Take a look at our [build instructions for the sample Sudoku driver](https://github.com/metabase/sudoku-driver#build-it-updated-for-build-script-changes-in-metabase-0460) for an explanation of the command.
+
+  Note that while this command itself is quite a lot to type, you no longer need to specify a `:build` alias in your
+  driver's `deps.edn` file.
+
+  Please upvote https://ask.clojure.org/index.php/7843/allow-specifying-aliases-coordinates-that-point-projects ,
+  which will allow us to simplify the driver build command in the future.
+
 
 ### Copy it to your plugins dir and restart Metabase
 
@@ -92,11 +110,18 @@ cp target/uberjar/http.metabase-driver.jar /path/to/metabase/plugins/
 jar -jar /path/to/metabase/metabase.jar
 ```
 
-_or:_
+### Or [Adding external dependencies or plugins](https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker#adding-external-dependencies-or-plugins)
+To add external dependency JAR files, you’ll need to:
+
+  # create a plugins directory in your host system, and
+  # bind that directory so it’s available to Metabase as the path /plugins (using either --mount or -v/--volume). 
+
+For example, if you have a directory named /path/to/plugins on your host system, you can make its contents available to Metabase using the --mount option as follows:
 
 ```bash
-mkdir -p /path/to/metabase_source/plugins
-cp target/uberjar/http.metabase-driver.jar /path/to/metabase_source/plugins/
-cd /path/to/metabase_source
-lein run
+docker run -d -p 3000:3000 \
+  --mount type=bind,source=/path/to/plugins,destination=/plugins \
+  --name metabase metabase/metabase
 ```
+    
+# Note that Metabase will use this directory to extract plugins bundled with the default Metabase distribution (such as drivers for various databases such as SQLite), thus it must be readable and writable by Docker.
