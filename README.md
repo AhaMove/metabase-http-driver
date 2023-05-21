@@ -113,8 +113,8 @@ jar -jar /path/to/metabase/metabase.jar
 ### Or [Adding external dependencies or plugins](https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker#adding-external-dependencies-or-plugins)
 To add external dependency JAR files, you’ll need to:
 
-  # create a plugins directory in your host system, and
-  # bind that directory so it’s available to Metabase as the path /plugins (using either --mount or -v/--volume). 
+  - create a plugins directory in your host system
+  - bind that directory so it’s available to Metabase as the path /plugins (using either --mount or -v/--volume). 
 
 For example, if you have a directory named /path/to/plugins on your host system, you can make its contents available to Metabase using the --mount option as follows:
 
@@ -124,4 +124,4 @@ docker run -d -p 3000:3000 \
   --name metabase metabase/metabase
 ```
     
-# Note that Metabase will use this directory to extract plugins bundled with the default Metabase distribution (such as drivers for various databases such as SQLite), thus it must be readable and writable by Docker.
+### Note that Metabase will use this directory to extract plugins bundled with the default Metabase distribution (such as drivers for various databases such as SQLite), thus it must be readable and writable by Docker.
