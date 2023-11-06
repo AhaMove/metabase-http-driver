@@ -17,7 +17,7 @@
              [date-2 :as u.date]
              [i18n :refer [tru]]])
   (:import java.time.temporal.Temporal
-           [metabase.driver.common.parameters CommaSeparatedNumbers Date MultipleValues]))
+           [metabase.driver.common.parameters Date]))
 
 (defn- ->utc-instant [t]
   (t/instant
@@ -39,10 +39,6 @@
     (instance? Date x)
     (param-value->str field (u.date/parse (:s x)))
 
-    ;; MultipleValues get converted as sequences
-    (instance? MultipleValues x)
-    (param-value->str field (:values x))
-
     (and (instance? Temporal x)
          (isa? special-type :type/UNIXTimestampSeconds))
     (long (/ (t/to-millis-from-epoch (->utc-instant x)) 1000))
@@ -55,10 +51,6 @@
     (instance? Temporal x)
     (format "%s" (u.date/format x))
 
-      ;; there's a special record type for sequences of numbers; pull the sequence it wraps out and recur
-    (instance? CommaSeparatedNumbers x)
-    (param-value->str field (:numbers x))
-
       ;; for everything else, splice it in as its string representation
     :else
     x))
@@ -66,7 +58,7 @@
 (defn- field->name [field]
   (:name field))
 
-(defn- substitute-one-field-filter-date-range [{field :field, {param-type :type, value :value} :value}]
+(defn- substitute-one-field-filter-date-range [{field :field, {value :value} :value}]
   (let [{:keys [start end]} (date-params/date-string->range value {:inclusive-end? false})
         start-condition     (when start
                               (format "{%s: {$gte: %s}}" (field->name field) (param-value->str field (u.date/parse start))))
@@ -82,7 +74,7 @@
 (defn- substitute-one-field-filter [{field :field, {param-type :type, value :value} :value, :as field-filter}]
     ;; convert relative dates to approprate date range representations
   (cond
-    (date-params/date-range-type? param-type)
+    (date-params/not-single-date-type? param-type)
     (substitute-one-field-filter-date-range field-filter)
 
       ;; a `date/single` like `2020-01-10`
