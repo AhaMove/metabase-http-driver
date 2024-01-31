@@ -3,6 +3,9 @@ info:
   name: Metabase HTTP Driver
   version: 1.0.0
   description: HTTP/REST API driver
+contact-info:
+  name: Ahamove-HTTP
+  address: https://github.com/AhaMove/metabase-http-driver
 driver:
   name: http
   lazy-load: true
